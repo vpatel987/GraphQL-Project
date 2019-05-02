@@ -2,8 +2,11 @@ const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const schema = require('./schema/schema');
 const mongoose = require('mongoose');
-
+const cors = require('cors');
 const app = express();
+
+// allow cross origin requests
+app.use(cors());
 
 const uri = 'mongodb+srv://vishwaa:test123@cluster0-dphlz.mongodb.net/test?retryWrites=true';
 mongoose.connect(uri, { useNewUrlParser: true });
