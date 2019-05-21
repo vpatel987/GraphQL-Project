@@ -4,6 +4,7 @@ const graphqlHTTP = require('express-graphql');
 const {buildSchema} = require('graphql');
 const app = express();
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const cors = require('cors');
 
 const Bill = require('./models/bill');
@@ -21,11 +22,22 @@ app.use('/graphql', graphqlHTTP({
       date: String!
     }
 
+    type User{
+      _id: ID!
+      username: String!
+      password: String
+    }
+
     input BillInp{
       _id: ID!
       name: String!
       amount: Float!
       date: String!
+    }
+
+    input UserInp{
+      username: String!
+      password: String!
     }
 
     type rootQuery{
@@ -34,6 +46,7 @@ app.use('/graphql', graphqlHTTP({
 
     type mutation{
       addBill(billInp: BillInp): Bill
+      addUser(userInp: UserInp): User
     }
 
     schema{
@@ -45,13 +58,29 @@ app.use('/graphql', graphqlHTTP({
     bills: () => {
       return Bill.find({});
     },
-    addBill: () => {
+
+    addBill: args => {
       const bill = new Bill({
         name: args.billInp.name,
         amount: args.billInp.amount,
         date: new Date(args.billInp.date)
       })
       return bill.save();
+    },
+
+    addUser: args => {
+      return bcrypt
+      .hash(args.userInp.password, 12)
+      .then(hashPass => {
+        const user = new User({
+          username: args.userInp.username,
+          password: hashPass
+        })
+        user.save();
+      }).catch(err => {
+        throw err;
+      });
+
     }
   },
   graphiql: true
